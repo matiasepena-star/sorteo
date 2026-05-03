@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐟 Stella Maris · Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a1628;--card:#0f2040;--card2:#162b50;--accent:#00c4ff;--gold:#f5c518;--green:#22c55e;--red:#ef4444;--text:#e8f4f8;--muted:#6b9ab8;--border:#1e3a5f;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'Nunito',sans-serif;min-height:100vh;}
+  #login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .login-box{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px 32px;width:100%;max-width:360px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+  .login-box .fish{font-size:3rem;margin-bottom:12px;}
+  .login-box h1{font-family:'Playfair Display',serif;font-size:1.6rem;margin-bottom:4px;}
+  .login-box h1 span{color:var(--accent);}
+  .login-box p{color:var(--muted);font-size:0.8rem;margin-bottom:28px;}
+  .login-box input{width:100%;padding:14px 16px;border-radius:12px;border:2px solid var(--border);background:var(--card2);color:var(--text);font-family:'Nunito',sans-serif;font-size:1rem;margin-bottom:14px;text-align:center;letter-spacing:3px;outline:none;transition:border-color 0.2s;}
+  .login-box input:focus{border-color:var(--accent);}
+  .login-box button{width:100%;padding:14px;border-radius:12px;border:none;background:var(--accent);color:#001a33;font-family:'Nunito',sans-serif;font-weight:900;font-size:1rem;cursor:pointer;}
+  .login-error{color:var(--red);font-size:0.8rem;margin-top:10px;display:none;}
+  #admin-screen{display:none;}
+  header{background:linear-gradient(180deg,#071020 0%,#0a1628 100%);border-bottom:2px solid var(--border);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 4px 24px rgba(0,0,0,0.5);}
+  .header-left{display:flex;align-items:center;gap:10px;}
+  .header-logo{width:36px;height:36px;border-radius:8px;object-fit:cover;border:1px solid var(--border);}
+  .header-titles h1{font-family:'Playfair Display',serif;font-size:1.3rem;}
+  .header-titles h1 span{color:var(--accent);}
+  .header-titles p{font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+  .logout-btn{padding:8px 16px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Nunito',sans-serif;font-size:0.8rem;cursor:pointer;}
+  .logout-btn:hover{border-color:var(--red);color:var(--red);}
+  main{max-width:640px;margin:0 auto;padding:20px 16px 80px;}
+  .tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:24px;background:var(--card);border-radius:14px;padding:6px;border:1px solid var(--border);}
+  .tab{padding:8px 2px;border-radius:10px;border:none;background:transparent;color:var(--muted);font-family:'Nunito',sans-serif;font-weight:800;font-size:0.7rem;cursor:pointer;transition:all 0.2s;text-align:center;}
+  .tab.active{background:var(--accent);color:#001a33;}
+  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px;}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center;}
+  .stat-num{font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--accent);font-weight:900;}
+  .stat-label{font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px;}
+  .admin-card{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-bottom:20px;}
+  .admin-card-header{padding:16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;}
+  .admin-emoji{font-size:2rem;}
+  .admin-info{flex:1;}
+  .admin-nombre{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;}
+  .admin-sorteo{font-size:0.75rem;color:var(--muted);margin-top:2px;}
+  .admin-recaudado{text-align:right;}
+  .admin-recaudado .num{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--green);font-weight:900;}
+  .admin-recaudado .label{font-size:0.65rem;color:var(--muted);text-transform:uppercase;}
+  .admin-numeros{padding:16px;}
+  .admin-numeros-label{font-size:0.72rem;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+  .admin-leyenda{display:flex;gap:12px;margin-bottom:12px;font-size:0.7rem;color:var(--muted);}
+  .admin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .num-admin{border-radius:14px;border:2px solid var(--border);background:var(--card2);padding:10px 8px;cursor:pointer;transition:all 0.2s;text-align:center;}
+  .num-admin .n{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:var(--text);}
+  .num-admin .estado{font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-top:3px;color:var(--muted);}
+  .num-admin .participante{font-size:0.68rem;color:var(--accent);margin-top:2px;font-weight:700;}
+  .num-admin.libre:hover{border-color:var(--green);background:rgba(34,197,94,0.08);}
+  .num-admin.pagado{border-color:var(--green);background:rgba(34,197,94,0.12);}
+  .num-admin.pagado .n{color:var(--green);}
+  .num-admin.pagado .estado{color:var(--green);}
+  .num-admin.pagado:hover{border-color:var(--red);background:rgba(239,68,68,0.08);}
+  .num-admin.pescaderia{border-color:rgba(0,196,255,0.3);background:rgba(0,196,255,0.06);}
+  .num-admin.pescaderia .n{color:var(--accent);}
+  .num-admin.pescaderia .estado{color:var(--accent);}
+  .num-admin.pescaderia:hover{border-color:var(--red);background:rgba(239,68,68,0.08);}
+  .acciones-row{display:flex;gap:8px;padding:0 16px 16px;flex-wrap:wrap;}
+  .accion-btn{flex:1;min-width:120px;padding:10px;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Nunito',sans-serif;font-weight:800;font-size:0.75rem;cursor:pointer;transition:all 0.2s;text-align:center;}
+  .accion-btn.pesca{border-color:var(--accent);color:var(--accent);}
+  .accion-btn.pesca:hover{background:rgba(0,196,255,0.08);}
+  .accion-btn.reset:hover{border-color:var(--red);color:var(--red);}
+  .aviso-pesca{font-size:0.7rem;color:var(--gold);padding:6px 16px 12px;font-weight:700;}
+
+  /* MODAL NOMBRE */
+  .modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:200;display:none;align-items:center;justify-content:center;padding:20px;}
+  .modal-overlay.visible{display:flex;}
+  .modal-box{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px;width:100%;max-width:360px;text-align:center;}
+  .modal-box h3{font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:6px;}
+  .modal-box p{font-size:0.8rem;color:var(--muted);margin-bottom:18px;}
+  .modal-box input{width:100%;padding:12px 14px;border-radius:10px;border:2px solid var(--border);background:var(--card2);color:var(--text);font-family:'Nunito',sans-serif;font-size:1rem;outline:none;margin-bottom:14px;}
+  .modal-box input:focus{border-color:var(--accent);}
+  .modal-btns{display:flex;gap:10px;}
+  .modal-btns button{flex:1;padding:12px;border-radius:10px;border:none;font-family:'Nunito',sans-serif;font-weight:900;font-size:0.9rem;cursor:pointer;}
+  .modal-confirm{background:var(--accent);color:#001a33;}
+  .modal-cancel{background:var(--card2);color:var(--muted);border:1px solid var(--border)!important;border:none;}
+
+  /* SORTEO ANIMACION */
+  .sorteo-machine{background:linear-gradient(135deg,var(--card2),var(--card));border:2px solid var(--border);border-radius:20px;padding:28px;text-align:center;margin-bottom:20px;}
+  .sorteo-machine h3{font-family:'Playfair Display',serif;font-size:1rem;margin-bottom:6px;}
+  .sorteo-machine p{font-size:0.78rem;color:var(--muted);margin-bottom:20px;}
+  .sorteo-select{width:100%;padding:10px 12px;border-radius:10px;border:2px solid var(--border);background:var(--card2);color:var(--text);font-family:'Nunito',sans-serif;font-size:0.9rem;outline:none;margin-bottom:16px;}
+  .numero-display{width:140px;height:140px;border-radius:50%;background:var(--card);border:3px solid var(--border);margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:4rem;font-weight:900;color:var(--muted);transition:all 0.1s;position:relative;overflow:hidden;}
+  .numero-display.girando{border-color:var(--accent);box-shadow:0 0 30px rgba(0,196,255,0.3);animation:rotar 0.5s linear infinite;}
+  .numero-display.ganador{border-color:var(--gold);box-shadow:0 0 40px rgba(245,197,24,0.5);color:var(--gold);animation:ganadorPulse 0.5s ease;}
+  @keyframes rotar{0%{transform:scale(1);}50%{transform:scale(1.05);}100%{transform:scale(1);}}
+  @keyframes ganadorPulse{0%{transform:scale(0.8);opacity:0;}60%{transform:scale(1.1);}100%{transform:scale(1);opacity:1;}}
+  .sortear-btn{width:100%;padding:16px;border-radius:14px;border:none;background:linear-gradient(135deg,var(--gold),#ff9800);color:#000;font-family:'Nunito',sans-serif;font-weight:900;font-size:1.1rem;cursor:pointer;transition:all 0.2s;margin-bottom:12px;}
+  .sortear-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(245,197,24,0.4);}
+  .sortear-btn:disabled{background:var(--card2);color:var(--muted);cursor:not-allowed;transform:none;box-shadow:none;}
+  .publicar-btn{width:100%;padding:12px;border-radius:12px;border:none;background:var(--green);color:#fff;font-family:'Nunito',sans-serif;font-weight:900;font-size:0.9rem;cursor:pointer;display:none;}
+  .publicar-btn.visible{display:block;}
+  .ganador-info{background:rgba(245,197,24,0.08);border:1px solid rgba(245,197,24,0.2);border-radius:12px;padding:12px;margin-bottom:12px;display:none;}
+  .ganador-info.visible{display:block;}
+  .ganador-info .nombre{font-size:1rem;font-weight:900;color:var(--gold);}
+  .ganador-info .prod{font-size:0.78rem;color:var(--muted);margin-top:3px;}
+
+  /* CONFETTI */
+  .confetti-container{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:300;overflow:hidden;}
+  .confetti-piece{position:absolute;width:10px;height:10px;top:-10px;animation:confettiFall linear forwards;}
+  @keyframes confettiFall{0%{transform:translateY(0) rotate(0deg);opacity:1;}100%{transform:translateY(100vh) rotate(720deg);opacity:0;}}
+
+  .seccion{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:20px;margin-bottom:20px;}
+  .seccion h3{font-family:'Playfair Display',serif;font-size:1rem;margin-bottom:14px;color:var(--text);padding-bottom:10px;border-bottom:1px solid var(--border);}
+  .form-col{display:flex;flex-direction:column;gap:10px;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .form-group{display:flex;flex-direction:column;gap:5px;}
+  .form-group.full{grid-column:1/-1;}
+  .form-group label{font-size:0.72rem;color:var(--muted);font-weight:800;text-transform:uppercase;letter-spacing:1px;}
+  .form-group input,.form-group select,.form-group textarea{padding:10px 12px;border-radius:10px;border:2px solid var(--border);background:var(--card2);color:var(--text);font-family:'Nunito',sans-serif;font-size:0.9rem;outline:none;transition:border-color 0.2s;width:100%;}
+  .form-group input:focus,.form-group select:focus{border-color:var(--accent);}
+  .form-group textarea{resize:vertical;min-height:70px;}
+  .img-preview{width:100%;height:120px;border-radius:10px;object-fit:cover;margin-top:8px;border:2px solid var(--border);display:none;}
+  .img-preview.visible{display:block;}
+  .logo-preview{width:60px;height:60px;border-radius:12px;object-fit:cover;margin-top:8px;border:2px solid var(--border);display:none;}
+  .logo-preview.visible{display:block;}
+  .img-hint{font-size:0.7rem;color:var(--muted);margin-top:4px;}
+  .img-hint a{color:var(--accent);text-decoration:none;}
+  .save-btn{width:100%;padding:12px;border-radius:12px;border:none;background:var(--accent);color:#001a33;font-family:'Nunito',sans-serif;font-weight:900;font-size:0.9rem;cursor:pointer;margin-top:4px;}
+  .clear-btn{width:100%;padding:10px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Nunito',sans-serif;font-weight:800;font-size:0.8rem;cursor:pointer;margin-top:6px;}
+  .clear-btn:hover{border-color:var(--red);color:var(--red);}
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--card2);border-radius:10px;border:1px solid var(--border);}
+  .toggle-row span{font-size:0.85rem;font-weight:700;}
+  .toggle{width:44px;height:24px;background:var(--border);border-radius:20px;cursor:pointer;position:relative;transition:background 0.2s;border:none;}
+  .toggle.on{background:var(--accent);}
+  .toggle::after{content:'';position:absolute;width:18px;height:18px;background:#fff;border-radius:50%;top:3px;left:3px;transition:left 0.2s;}
+  .toggle.on::after{left:23px;}
+  .prod-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px;margin-bottom:16px;}
+  .prod-card-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .prod-card-header .emoji-big{font-size:2rem;}
+  .prod-card-header .prod-title{flex:1;font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;}
+  .delete-btn{padding:6px 12px;border-radius:8px;border:1px solid var(--red);background:transparent;color:var(--red);font-family:'Nunito',sans-serif;font-weight:800;font-size:0.75rem;cursor:pointer;}
+  .save-prod-btn{margin-top:12px;width:100%;padding:11px;border-radius:10px;border:none;background:var(--accent);color:#001a33;font-family:'Nunito',sans-serif;font-weight:900;font-size:0.9rem;cursor:pointer;}
+  .nuevo-btn{width:100%;padding:16px;border-radius:16px;border:2px dashed var(--border);background:transparent;color:var(--muted);font-family:'Nunito',sans-serif;font-weight:800;font-size:0.9rem;cursor:pointer;transition:all 0.2s;margin-bottom:20px;}
+  .nuevo-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .historial-item{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:8px;}
+  .h-num{background:var(--green);color:#001a33;font-weight:900;font-size:0.85rem;padding:3px 10px;border-radius:20px;white-space:nowrap;}
+  .h-info{flex:1;}
+  .h-prod{font-size:0.82rem;font-weight:800;}
+  .h-fecha{font-size:0.7rem;color:var(--muted);}
+  .h-del{padding:4px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:0.7rem;cursor:pointer;}
+  .h-del:hover{border-color:var(--red);color:var(--red);}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);color:#fff;font-weight:800;font-size:0.85rem;padding:12px 20px;border-radius:20px;z-index:999;animation:toastIn 0.3s ease;box-shadow:0 4px 20px rgba(0,0,0,0.4);white-space:nowrap;}
+  .toast.ok{background:var(--green);}
+  .toast.err{background:var(--red);}
+  .toast.warn{background:var(--gold);color:#000;}
+  @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(20px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+  .loading{text-align:center;padding:40px;color:var(--muted);}
+  .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .empty-state{text-align:center;padding:40px 20px;color:var(--muted);font-size:0.85rem;}
+  .empty-state .icon{font-size:3rem;margin-bottom:12px;}
+</style>
+</head>
+<body>
+
+<!-- MODAL NOMBRE PARTICIPANTE -->
+<div class="modal-overlay" id="modal-nombre">
+  <div class="modal-box">
+    <h3>✅ Marcar como pagado</h3>
+    <p id="modal-texto">¿Quién compró este número?</p>
+    <input type="text" id="modal-input" placeholder="Nombre del participante (opcional)" />
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="cerrarModal()">Cancelar</button>
+      <button class="modal-confirm" onclick="confirmarPago()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONFETTI -->
+<div class="confetti-container" id="confetti-container"></div>
+
+<div id="login-screen">
+  <div class="login-box">
+    <div class="fish">🐟</div>
+    <h1>Stella <span>Maris</span></h1>
+    <p>Panel de administración</p>
+    <input type="password" id="pass-input" placeholder="Contraseña" onkeydown="if(event.key==='Enter')login()" />
+    <button onclick="login()">Entrar</button>
+    <div class="login-error" id="login-error">Contraseña incorrecta</div>
+  </div>
+</div>
+
+<div id="admin-screen">
+  <header>
+    <div class="header-left">
+      <img class="header-logo" id="header-logo" src="" style="display:none" onerror="this.style.display='none'" />
+      <div class="header-titles">
+        <h1>🐟 Stella <span>Maris</span></h1>
+        <p>Panel de administración</p>
+      </div>
+    </div>
+    <button class="logout-btn" onclick="logout()">Salir</button>
+  </header>
+  <main>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('sorteos',this)">🎲 Sorteos</button>
+      <button class="tab" onclick="switchTab('dia',this)">📅 Día</button>
+      <button class="tab" onclick="switchTab('historial',this)">🏅 Historial</button>
+      <button class="tab" onclick="switchTab('productos',this)">🐟 Productos</button>
+      <button class="tab" onclick="switchTab('config',this)">⚙️ Config</button>
+    </div>
+    <div id="tab-sorteos"><div id="stats-container"></div><div id="sorteos-container"><div class="loading"><div class="spinner"></div><p>Cargando...</p></div></div></div>
+    <div id="tab-dia" style="display:none"></div>
+    <div id="tab-historial" style="display:none"></div>
+    <div id="tab-productos" style="display:none"><button class="nuevo-btn" onclick="abrirNuevoProducto()">➕ Agregar nuevo producto</button><div id="productos-container"></div></div>
+    <div id="tab-config" style="display:none"></div>
+  </main>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue, set, remove, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const PASSWORD = "redondos2026";
+const firebaseConfig = {
+  apiKey: "AIzaSyCeZjposhVnyWa8SRWNcm58ocAffkMnnlA",
+  authDomain: "stella-maris-f7217.firebaseapp.com",
+  databaseURL: "https://stella-maris-f7217-default-rtdb.firebaseio.com",
+  projectId: "stella-maris-f7217",
+  storageBucket: "stella-maris-f7217.firebasestorage.app",
+  messagingSenderId: "574628100020",
+  appId: "1:574628100020:web:bb352954d62c2ab303e4e1"
+};
+const EMOJIS=["🐟","🦐","🦞","🐠","🦑","🦀","🐙","🥗","🍱","🎁","🐡","🦈"];
+
+const app=initializeApp(firebaseConfig);
+const db=getDatabase(app);
+let productosDB={},ocupadosDB={},configDB={},historialDB={},tabActual="sorteos";
+let modalProdId=null,modalNum=null;
+
+function fmt(n){return "$"+Number(n).toLocaleString("es-AR");}
+function showToast(msg,tipo="ok"){
+  document.querySelectorAll(".toast").forEach(t=>t.remove());
+  const t=document.createElement("div");t.className="toast "+tipo;t.textContent=msg;
+  document.body.appendChild(t);setTimeout(()=>t.remove(),2500);
+}
+
+// ─── LOGIN ─────────────────────────────────────────────────
+window.login=function(){
+  if(document.getElementById("pass-input").value===PASSWORD){
+    document.getElementById("login-screen").style.display="none";
+    document.getElementById("admin-screen").style.display="block";
+    iniciarEscucha();
+  }else{document.getElementById("login-error").style.display="block";document.getElementById("pass-input").value="";}
+};
+window.logout=function(){
+  document.getElementById("login-screen").style.display="flex";
+  document.getElementById("admin-screen").style.display="none";
+  document.getElementById("pass-input").value="";
+};
+window.switchTab=function(tab,btn){
+  tabActual=tab;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));btn.classList.add("active");
+  ["sorteos","dia","historial","productos","config"].forEach(t=>{document.getElementById("tab-"+t).style.display=t===tab?"block":"none";});
+  if(tab==="productos")renderProductos();
+  if(tab==="dia")renderDia();
+  if(tab==="historial")renderHistorial();
+  if(tab==="config")renderConfig();
+};
+
+function iniciarEscucha(){
+  onValue(ref(db,"productos"),(snap)=>{productosDB=snap.val()||{};if(tabActual==="productos")renderProductos();renderSorteos();});
+  onValue(ref(db,"sorteos"),(snap)=>{
+    const val=snap.val()||{};ocupadosDB={};
+    Object.keys(val).forEach(id=>{
+      ocupadosDB[id]={
+        pagados:val[id].ocupados?Object.values(val[id].ocupados):[],
+        pescaderia:val[id].pescaderia?Object.values(val[id].pescaderia):[],
+        nombres:val[id].nombres||{}
+      };
+    });
+    renderSorteos();
+  });
+  onValue(ref(db,"config"),(snap)=>{
+    configDB=snap.val()||{};
+    const logo=configDB.logo,el=document.getElementById("header-logo");
+    if(logo){el.src=logo;el.style.display="block";}
+    if(tabActual==="dia")renderDia();
+    if(tabActual==="config")renderConfig();
+  });
+  onValue(ref(db,"historial"),(snap)=>{historialDB=snap.val()||{};if(tabActual==="historial")renderHistorial();});
+}
+
+// ─── MODAL NOMBRE ──────────────────────────────────────────
+window.cerrarModal=function(){
+  document.getElementById("modal-nombre").classList.remove("visible");
+  document.getElementById("modal-input").value="";
+  modalProdId=null;modalNum=null;
+};
+window.confirmarPago=async function(){
+  const nombre=document.getElementById("modal-input").value.trim();
+  const d=ocupadosDB[modalProdId]||{};
+  const pagados=[...(d.pagados||[])];
+  pagados.push(modalNum);
+  await set(ref(db,"sorteos/"+modalProdId+"/ocupados"),pagados);
+  if(nombre){
+    await set(ref(db,"sorteos/"+modalProdId+"/nombres/"+modalNum),nombre);
+  }
+  showToast("✅ #"+modalNum+(nombre?" - "+nombre:"")+" marcado como pagado");
+  cerrarModal();
+};
+
+// ─── SORTEOS ───────────────────────────────────────────────
+function renderSorteos(){
+  const productos=Object.values(productosDB).filter(p=>p.activo);
+  let totalOcu=0,totalRec=0,totalLug=0;
+  productos.forEach(p=>{const d=ocupadosDB[p.id]||{};const o=(d.pagados||[]).length;totalOcu+=o;totalRec+=o*p.precioPorLugar;totalLug+=p.totalLugares;});
+  document.getElementById("stats-container").innerHTML=`<div class="stats-row"><div class="stat-card"><div class="stat-num">${totalOcu}</div><div class="stat-label">Vendidos</div></div><div class="stat-card"><div class="stat-num">${totalLug-totalOcu}</div><div class="stat-label">Disponibles</div></div><div class="stat-card"><div class="stat-num" style="font-size:1.1rem">${fmt(totalRec)}</div><div class="stat-label">Recaudado</div></div></div>`;
+  const cont=document.getElementById("sorteos-container");
+  if(productos.length===0){cont.innerHTML=`<div class="empty-state"><div class="icon">🐟</div><p>No hay productos activos.</p></div>`;return;}
+  cont.innerHTML="";
+  productos.forEach(prod=>{
+    const d=ocupadosDB[prod.id]||{},pagados=d.pagados||[],pesca=d.pescaderia||[],nombres=d.nombres||{};
+    let fechaTexto=prod.sorteo||"Sin fecha";
+    if(prod.fechaSorteo){const f=new Date(prod.fechaSorteo);fechaTexto=f.toLocaleDateString("es-AR",{weekday:"short",day:"numeric",month:"short"})+" "+f.toLocaleTimeString("es-AR",{hour:"2-digit",minute:"2-digit"})+"hs";}
+    const card=document.createElement("div");card.className="admin-card";
+    card.innerHTML=`
+      <div class="admin-card-header">
+        <div class="admin-emoji">${prod.imagen?`<img src="${prod.imagen}" style="width:48px;height:48px;border-radius:10px;object-fit:cover;">`:prod.emoji||'🐟'}</div>
+        <div class="admin-info"><div class="admin-nombre">${prod.nombre}</div><div class="admin-sorteo">📅 ${fechaTexto} · ${pagados.length}/${prod.totalLugares} vendidos</div></div>
+        <div class="admin-recaudado"><div class="num">${fmt(pagados.length*prod.precioPorLugar)}</div><div class="label">recaudado</div></div>
+      </div>
+      <div class="admin-numeros">
+        <div class="admin-numeros-label">Tocá un número libre para marcarlo como pagado:</div>
+        <div class="admin-leyenda"><span>🟢 Pagado</span><span>🔵 Pescadería</span><span>⬜ Libre</span></div>
+        <div class="admin-grid" id="grid-${prod.id}"></div>
+      </div>
+      <div class="aviso-pesca">⚠️ Usá "Completar con pescadería" solo el día del sorteo, al momento de sortear.</div>
+      <div class="acciones-row">
+        <button class="accion-btn pesca" data-id="${prod.id}">🐟 Completar con pescadería</button>
+        <button class="accion-btn reset" data-id="${prod.id}">🔄 Reiniciar todo</button>
+      </div>`;
+    cont.appendChild(card);
+    const grid=card.querySelector("#grid-"+prod.id);
+    for(let n=1;n<=prod.totalLugares;n++){
+      const isPagado=pagados.includes(n),isPesca=pesca.includes(n);
+      const nombreParticipante=nombres[n]||"";
+      const btn=document.createElement("div");btn.className="num-admin "+(isPagado?"pagado":isPesca?"pescaderia":"libre");
+      btn.innerHTML=`<div class="n">#${n}</div><div class="estado">${isPagado?"✅ Pagado":isPesca?"🐟 Pesca":"⬜ Libre"}</div>${nombreParticipante?`<div class="participante">${nombreParticipante}</div>`:''}`;
+      btn.addEventListener("click",()=>{
+        if(!isPagado&&!isPesca){
+          // Abrir modal para pedir nombre
+          modalProdId=prod.id;modalNum=n;
+          document.getElementById("modal-texto").textContent=`¿Quién compró el número #${n} de ${prod.nombre}?`;
+          document.getElementById("modal-nombre").classList.add("visible");
+          setTimeout(()=>document.getElementById("modal-input").focus(),100);
+        } else {
+          toggleNum(prod.id,n,isPagado,isPesca);
+        }
+      });
+      grid.appendChild(btn);
+    }
+    card.querySelector(".accion-btn.pesca").addEventListener("click",()=>completarPesca(prod.id,prod.totalLugares));
+    card.querySelector(".accion-btn.reset").addEventListener("click",()=>resetSorteo(prod.id));
+  });
+}
+
+async function toggleNum(prodId,num,isPagado,isPesca){
+  const d=ocupadosDB[prodId]||{};let pagados=[...(d.pagados||[])],pesca=[...(d.pescaderia||[])];
+  if(isPagado){
+    pagados=pagados.filter(n=>n!==num);
+    pagados.length===0?await remove(ref(db,"sorteos/"+prodId+"/ocupados")):await set(ref(db,"sorteos/"+prodId+"/ocupados"),pagados);
+    await remove(ref(db,"sorteos/"+prodId+"/nombres/"+num));
+    showToast("🔓 #"+num+" liberado");
+  }else if(isPesca){
+    pesca=pesca.filter(n=>n!==num);
+    pesca.length===0?await remove(ref(db,"sorteos/"+prodId+"/pescaderia")):await set(ref(db,"sorteos/"+prodId+"/pescaderia"),pesca);
+    showToast("🔓 #"+num+" liberado");
+  }
+}
+
+async function completarPesca(prodId,total){
+  const d=ocupadosDB[prodId]||{},pagados=d.pagados||[],pesca=d.pescaderia||[];
+  const todos=[...pagados,...pesca],vacios=[];
+  for(let n=1;n<=total;n++){if(!todos.includes(n))vacios.push(n);}
+  if(vacios.length===0){showToast("Ya están todos completos");return;}
+  await set(ref(db,"sorteos/"+prodId+"/pescaderia"),[...pesca,...vacios]);
+  showToast(`🐟 ${vacios.length} lugares completados`,"warn");
+}
+
+async function resetSorteo(prodId){
+  if(!confirm("¿Reiniciar este sorteo? Se borran todos los números y nombres."))return;
+  await remove(ref(db,"sorteos/"+prodId));
+  showToast("🎲 Sorteo reiniciado");
+}
+
+// ─── DIA DEL SORTEO ────────────────────────────────────────
+function renderDia(){
+  const cont=document.getElementById("tab-dia");const cfg=configDB||{};
+  const productos=Object.values(productosDB).filter(p=>p.activo);
+  cont.innerHTML="";
+
+  // MAQUINA DE SORTEO
+  const maquina=document.createElement("div");maquina.className="sorteo-machine";
+  maquina.innerHTML=`
+    <h3>🎲 Generador de ganador</h3>
+    <p>Seleccioná el producto y tocá sortear. Solo sortea entre los números pagados.</p>
+    <select class="sorteo-select" id="sorteo-prod-select">
+      <option value="">-- Elegí el producto --</option>
+      ${productos.map(p=>`<option value="${p.id}">${p.nombre}</option>`).join('')}
+    </select>
+    <div class="numero-display" id="numero-display">?</div>
+    <div class="ganador-info" id="ganador-info">
+      <div class="nombre" id="ganador-nombre-display"></div>
+      <div class="prod" id="ganador-prod-display"></div>
+    </div>
+    <button class="sortear-btn" id="sortear-btn" onclick="sortear()">🎲 ¡SORTEAR AHORA!</button>
+    <button class="publicar-btn" id="publicar-btn" onclick="publicarGanador()">🏆 Publicar ganador en la app</button>`;
+  cont.appendChild(maquina);
+
+  // ANUNCIAR HOY
+  const card=document.createElement("div");card.className="seccion";
+  card.innerHTML=`
+    <h3>📢 Anunciar sorteo en curso</h3>
+    <div class="form-col">
+      <div class="toggle-row"><span>¿Hoy es día de sorteo?</span><button class="toggle ${cfg.sorteoHoy?'on':''}" id="toggle-hoy"></button></div>
+      <div class="form-group"><label>Mensaje para los clientes</label><input type="text" id="msg-hoy" placeholder="Ej: Seguinos a las 15hs por Instagram" value="${cfg.mensajeHoy||''}"/></div>
+      <div class="form-group"><label>Link de Instagram (opcional)</label><input type="text" id="ig-link" placeholder="https://instagram.com/..." value="${cfg.igLink||''}"/></div>
+      <button class="save-btn" id="save-hoy">💾 Guardar</button>
+    </div>`;
+  cont.appendChild(card);
+
+  // GANADOR MANUAL
+  const card2=document.createElement("div");card2.className="seccion";
+  card2.innerHTML=`
+    <h3>🏆 Publicar ganador manualmente</h3>
+    <div class="form-col">
+      <div class="form-group"><label>Número ganador</label><input type="number" id="gan-numero" placeholder="Ej: 4" min="1" max="12" value="${cfg.ganador?.numero||''}"/></div>
+      <div class="form-group"><label>Nombre del ganador (opcional)</label><input type="text" id="gan-nombre" placeholder="Ej: María González" value="${cfg.ganador?.nombre||''}"/></div>
+      <div class="form-group"><label>Producto sorteado</label><select id="gan-prod">${productos.map(p=>`<option value="${p.nombre}" ${cfg.ganador?.producto===p.nombre?'selected':''}>${p.nombre}</option>`).join('')}</select></div>
+      <button class="save-btn" id="save-ganador">🏆 Publicar ganador</button>
+      <button class="clear-btn" id="clear-ganador">✕ Quitar ganador de la app</button>
+    </div>`;
+  cont.appendChild(card2);
+
+  // EVENTOS
+  const toggleHoy=card.querySelector("#toggle-hoy");
+  toggleHoy.addEventListener("click",()=>toggleHoy.classList.toggle("on"));
+  card.querySelector("#save-hoy").addEventListener("click",async()=>{
+    await set(ref(db,"config/sorteoHoy"),toggleHoy.classList.contains("on"));
+    await set(ref(db,"config/mensajeHoy"),card.querySelector("#msg-hoy").value);
+    await set(ref(db,"config/igLink"),card.querySelector("#ig-link").value);
+    showToast("💾 Guardado");
+  });
+  card2.querySelector("#save-ganador").addEventListener("click",async()=>{
+    const num=card2.querySelector("#gan-numero").value,nombre=card2.querySelector("#gan-nombre").value,prod=card2.querySelector("#gan-prod").value;
+    if(!num){showToast("Ingresá el número ganador","err");return;}
+    await set(ref(db,"config/ganador"),{numero:Number(num),nombre,producto:prod});
+    await push(ref(db,"historial"),{numero:Number(num),nombre,producto:prod,fecha:new Date().toLocaleDateString("es-AR")});
+    showToast("🏆 Ganador publicado");
+  });
+  card2.querySelector("#clear-ganador").addEventListener("click",async()=>{
+    await remove(ref(db,"config/ganador"));await set(ref(db,"config/sorteoHoy"),false);showToast("✕ Quitado");
+  });
+}
+
+// ─── SORTEO ANIMACION ──────────────────────────────────────
+let ganadorActual=null;
+let prodActual=null;
+
+window.sortear=function(){
+  const prodId=document.getElementById("sorteo-prod-select").value;
+  if(!prodId){showToast("Elegí un producto primero","err");return;}
+  const d=ocupadosDB[prodId]||{};
+  const pagados=d.pagados||[];
+  if(pagados.length===0){showToast("No hay números pagados para sortear","err");return;}
+
+  const prod=productosDB[prodId];
+  prodActual=prod;
+  const nombres=d.nombres||{};
+
+  const display=document.getElementById("numero-display");
+  const btn=document.getElementById("sortear-btn");
+  const publicarBtn=document.getElementById("publicar-btn");
+  const ganadorInfo=document.getElementById("ganador-info");
+
+  btn.disabled=true;
+  publicarBtn.classList.remove("visible");
+  ganadorInfo.classList.remove("visible");
+  display.className="numero-display girando";
+  ganadorActual=null;
+
+  // Animacion girando
+  let velocidad=80;
+  let duracion=3000;
+  let inicio=Date.now();
+
+  function girar(){
+    const elapsed=Date.now()-inicio;
+    const numRandom=pagados[Math.floor(Math.random()*pagados.length)];
+    display.textContent="#"+numRandom;
+
+    if(elapsed<duracion){
+      // Ir frenando
+      if(elapsed>2000) velocidad=150;
+      if(elapsed>2500) velocidad=300;
+      setTimeout(girar,velocidad);
+    } else {
+      // Ganador final
+      const ganador=pagados[Math.floor(Math.random()*pagados.length)];
+      ganadorActual=ganador;
+      display.textContent="#"+ganador;
+      display.className="numero-display ganador";
+      btn.disabled=false;
+
+      // Mostrar nombre si existe
+      const nombreGanador=nombres[ganador]||"";
+      document.getElementById("ganador-nombre-display").textContent=nombreGanador?"🎉 "+nombreGanador:"🎉 ¡Ganador!";
+      document.getElementById("ganador-prod-display").textContent=prod.nombre;
+      ganadorInfo.classList.add("visible");
+      publicarBtn.classList.add("visible");
+
+      // Confetti
+      lanzarConfetti();
+    }
+  }
+  girar();
+};
+
+window.publicarGanador=async function(){
+  if(!ganadorActual||!prodActual)return;
+  const d=ocupadosDB[prodActual.id]||{};
+  const nombres=d.nombres||{};
+  const nombre=nombres[ganadorActual]||"";
+  await set(ref(db,"config/ganador"),{numero:ganadorActual,nombre,producto:prodActual.nombre});
+  await push(ref(db,"historial"),{numero:ganadorActual,nombre,producto:prodActual.nombre,fecha:new Date().toLocaleDateString("es-AR")});
+  await set(ref(db,"config/sorteoHoy"),false);
+  showToast("🏆 Ganador publicado en la app");
+};
+
+function lanzarConfetti(){
+  const container=document.getElementById("confetti-container");
+  container.innerHTML="";
+  const colores=["#00c4ff","#f5c518","#22c55e","#ef4444","#a855f7","#ff9800"];
+  for(let i=0;i<60;i++){
+    const piece=document.createElement("div");
+    piece.className="confetti-piece";
+    piece.style.left=Math.random()*100+"%";
+    piece.style.background=colores[Math.floor(Math.random()*colores.length)];
+    piece.style.width=Math.random()*10+5+"px";
+    piece.style.height=Math.random()*10+5+"px";
+    piece.style.borderRadius=Math.random()>0.5?"50%":"0";
+    piece.style.animationDuration=Math.random()*2+2+"s";
+    piece.style.animationDelay=Math.random()*0.5+"s";
+    container.appendChild(piece);
+    setTimeout(()=>piece.remove(),4000);
+  }
+}
+
+// ─── HISTORIAL ─────────────────────────────────────────────
+function renderHistorial(){
+  const cont=document.getElementById("tab-historial");cont.innerHTML="";
+  const seccion=document.createElement("div");seccion.className="seccion";
+  seccion.innerHTML=`<h3>🏅 Historial de ganadores</h3><div id="hlist"></div>`;
+  cont.appendChild(seccion);
+  const list=seccion.querySelector("#hlist");
+  const entries=Object.entries(historialDB).reverse();
+  if(entries.length===0){list.innerHTML=`<div class="empty-state"><div class="icon">🏅</div><p>Todavía no hay ganadores.</p></div>`;return;}
+  entries.forEach(([key,h])=>{
+    const item=document.createElement("div");item.className="historial-item";
+    item.innerHTML=`<span class="h-num">#${h.numero}</span><div class="h-info"><div class="h-prod">${h.producto}${h.nombre?` · ${h.nombre}`:''}</div><div class="h-fecha">${h.fecha}</div></div><button class="h-del">✕</button>`;
+    item.querySelector(".h-del").addEventListener("click",async()=>{await remove(ref(db,"historial/"+key));showToast("Eliminado");});
+    list.appendChild(item);
+  });
+}
+
+// ─── PRODUCTOS ─────────────────────────────────────────────
+function renderProductos(){
+  const cont=document.getElementById("productos-container");cont.innerHTML="";
+  const entries=Object.entries(productosDB);
+  if(entries.length===0){cont.innerHTML=`<div class="empty-state"><div class="icon">🐟</div><p>No hay productos.</p></div>`;return;}
+  entries.forEach(([id,prod])=>{
+    const card=document.createElement("div");card.className="prod-card";
+    card.innerHTML=`
+      <div class="prod-card-header">
+        <div class="emoji-big">${prod.imagen?`<img src="${prod.imagen}" style="width:48px;height:48px;border-radius:10px;object-fit:cover;">`:prod.emoji||'🐟'}</div>
+        <div class="prod-title">${prod.nombre}</div>
+        <button class="delete-btn">Eliminar</button>
+      </div>
+      <div class="form-grid">
+        <div class="form-group full"><label>Nombre</label><input type="text" data-field="nombre" value="${prod.nombre||''}"/></div>
+        <div class="form-group full"><label>Descripción</label><input type="text" data-field="desc" value="${prod.desc||''}"/></div>
+        <div class="form-group full">
+          <label>🖼️ Link de imagen (postimages.org)</label>
+          <input type="text" data-field="imagen" placeholder="https://i.postimg.cc/..." value="${prod.imagen||''}"/>
+          <div class="img-hint">Subí tu foto en <a href="https://postimages.org" target="_blank">postimages.org</a> y pegá el enlace directo</div>
+          <img class="img-preview ${prod.imagen?'visible':''}" src="${prod.imagen||''}" alt="preview"/>
+        </div>
+        <div class="form-group"><label>Emoji</label><select data-field="emoji">${EMOJIS.map(e=>`<option value="${e}"${prod.emoji===e?" selected":""}>${e}</option>`).join("")}</select></div>
+        <div class="form-group full">
+          <label>📅 Fecha y hora del sorteo</label>
+          <input type="datetime-local" data-field="fechaSorteo" value="${prod.fechaSorteo||''}"/>
+          <div class="img-hint">Elegí la fecha y hora exacta. El contador regresivo se calcula automáticamente.</div>
+        </div>
+        <div class="form-group"><label>Precio real ($)</label><input type="number" data-field="precioReal" value="${prod.precioReal||0}"/></div>
+        <div class="form-group"><label>Precio por lugar ($)</label><input type="number" data-field="precioPorLugar" value="${prod.precioPorLugar||0}"/></div>
+        <div class="form-group"><label>Cant. de lugares</label><input type="number" data-field="totalLugares" value="${prod.totalLugares||6}" min="2" max="12"/></div>
+        <div class="form-group"><label>Visible en la app</label><select data-field="activo"><option value="true"${prod.activo?" selected":""}>✅ Sí</option><option value="false"${!prod.activo?" selected":""}>⛔ No</option></select></div>
+      </div>
+      <button class="save-prod-btn">💾 Guardar cambios</button>`;
+    const imgInput=card.querySelector('[data-field="imagen"]'),imgPreview=card.querySelector('.img-preview');
+    imgInput.addEventListener("input",()=>{const url=imgInput.value.trim();if(url){imgPreview.src=url;imgPreview.classList.add("visible");}else{imgPreview.classList.remove("visible");}});
+    card.querySelector(".delete-btn").addEventListener("click",()=>eliminarProducto(id,prod.nombre));
+    card.querySelector(".save-prod-btn").addEventListener("click",()=>guardarProducto(id,card));
+    cont.appendChild(card);
+  });
+}
+
+async function guardarProducto(id,card){
+  const datos={...productosDB[id],id};
+  card.querySelectorAll("[data-field]").forEach(input=>{
+    const f=input.dataset.field;let v=input.value;
+    if(["precioReal","precioPorLugar","totalLugares"].includes(f))v=Number(v);
+    if(f==="activo")v=v==="true";
+    datos[f]=v;
+  });
+  await set(ref(db,"productos/"+id),datos);showToast("💾 Guardado");
+}
+async function eliminarProducto(id,nombre){
+  if(!confirm("¿Eliminar "+nombre+"?"))return;
+  await remove(ref(db,"productos/"+id));await remove(ref(db,"sorteos/"+id));showToast("🗑️ Eliminado","err");
+}
+window.abrirNuevoProducto=async function(){
+  const nuevoId="prod_"+Date.now();
+  await set(ref(db,"productos/"+nuevoId),{id:nuevoId,emoji:"🐟",nombre:"Nuevo producto",desc:"Descripción",imagen:"",precioReal:10000,precioPorLugar:2000,totalLugares:6,fechaSorteo:"",activo:false});
+  showToast("➕ Producto creado");
+};
+
+// ─── CONFIG ────────────────────────────────────────────────
+function renderConfig(){
+  const cont=document.getElementById("tab-config");const cfg=configDB||{};
+  cont.innerHTML="";
+  const card=document.createElement("div");card.className="seccion";
+  card.innerHTML=`
+    <h3>⚙️ Configuración general</h3>
+    <div class="form-col">
+      <div class="form-group">
+        <label>🖼️ Logo del local (postimages.org)</label>
+        <input type="text" id="cfg-logo" placeholder="https://i.postimg.cc/..." value="${cfg.logo||''}"/>
+        <img class="logo-preview ${cfg.logo?'visible':''}" id="logo-prev" src="${cfg.logo||''}" alt="logo"/>
+      </div>
+      <div class="form-group"><label>📱 Tu número de WhatsApp</label><input type="text" id="cfg-wa" placeholder="5491176094137" value="${cfg.whatsapp||'5491176094137'}"/></div>
+      <div class="form-group"><label>💳 Métodos de pago</label><input type="text" id="cfg-pago" placeholder="Transferencia o Mercado Pago" value="${cfg.metodoPago||'Transferencia o Mercado Pago'}"/></div>
+      <div class="form-group"><label>🏆 Entrega del premio</label><input type="text" id="cfg-entrega" placeholder="Se retira en el local" value="${cfg.entregaPremio||'Se retira en el local'}"/></div>
+      <div class="form-group"><label>📍 Dirección (opcional)</label><input type="text" id="cfg-dir" placeholder="Av. Rivadavia 1234" value="${cfg.direccion||''}"/></div>
+      <button class="save-btn" id="save-config">💾 Guardar configuración</button>
+    </div>`;
+  cont.appendChild(card);
+  const logoInput=card.querySelector("#cfg-logo"),logoPrev=card.querySelector("#logo-prev");
+  logoInput.addEventListener("input",()=>{const url=logoInput.value.trim();if(url){logoPrev.src=url;logoPrev.classList.add("visible");}});
+  card.querySelector("#save-config").addEventListener("click",async()=>{
+    const newCfg={...cfg,logo:card.querySelector("#cfg-logo").value,whatsapp:card.querySelector("#cfg-wa").value,metodoPago:card.querySelector("#cfg-pago").value,entregaPremio:card.querySelector("#cfg-entrega").value,direccion:card.querySelector("#cfg-dir").value};
+    await set(ref(db,"config"),newCfg);showToast("💾 Configuración guardada");
+  });
+}
+</script>
+</body>
+</html>
